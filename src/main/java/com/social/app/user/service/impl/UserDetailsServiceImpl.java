@@ -1,5 +1,7 @@
 package com.social.app.user.service.impl;
 
+import com.social.app.exception.GeneralException;
+import com.social.app.general.enums.ResponseCodeAndMessage;
 import com.social.app.user.model.ApplicationUser;
 import com.social.app.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +11,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -17,12 +21,13 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        //create spring's user details object
+        log.info("Getting the user {} from the db", username);
 
-        final ApplicationUser user = userRepository.findByUsername(username);
+        ApplicationUser user = userRepository.findByUsername(username);
 
-        if (user == null) {
-            throw new UsernameNotFoundException("User '" + username + "' not found");
+        if (Objects.isNull(user)) {
+//            throw new UsernameNotFoundException("User '" + username + "' not found");
+            throw new GeneralException(ResponseCodeAndMessage.RECORD_NOT_FOUND_88.responseCode, "User '" + username + "' not found");
         }
 
         return org.springframework.security.core.userdetails.User

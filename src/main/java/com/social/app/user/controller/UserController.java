@@ -3,8 +3,8 @@ package com.social.app.user.controller;
 
 import com.social.app.general.dto.Response;
 import com.social.app.general.enums.ResponseCodeAndMessage;
-import com.social.app.user.dto.SignInRequest;
-import com.social.app.user.dto.SignUpRequest;
+import com.social.app.general.service.GeneralService;
+import com.social.app.user.dto.*;
 import com.social.app.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,12 +22,12 @@ public class UserController {
 
     private final UserService userService;
 
+    private final GeneralService generalService;
+
     @PostMapping("sign-up")
-    public ResponseEntity<Response> signUp(@Valid @RequestBody SignUpRequest signUpRequest) {
-        Response data = userService.signup(signUpRequest);
-        if (data.getResponseCode().equals(ResponseCodeAndMessage.SUCCESSFUL_0.responseCode))
-            return new ResponseEntity<>(data, HttpStatus.CREATED);
-        else return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+    public Response signUp(@Valid @RequestBody SignUpRequest signUpRequest) {
+        AppUserDTO data = userService.signup(signUpRequest);
+        return generalService.prepareResponse(ResponseCodeAndMessage.SUCCESSFUL_0, data);
     }
 
     @PostMapping("sign-in")
@@ -39,11 +39,9 @@ public class UserController {
     }
 
     @PostMapping("/update/{userId}")
-    public ResponseEntity<Response> updateUser(@Valid @RequestBody SignUpRequest signUpRequest, @PathVariable Long userId, Principal principal) {
-        Response data = userService.updateUser(signUpRequest, userId, principal.getName());
-        if (data.getResponseCode().equals(ResponseCodeAndMessage.SUCCESSFUL_0.responseCode))
-            return new ResponseEntity<>(data, HttpStatus.OK);
-        else return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+    public Response updateUser(@Valid @RequestBody SignUpRequest signUpRequest, @PathVariable Long userId, Principal principal) {
+        AppUserDTO data = userService.updateUser(signUpRequest, userId, principal.getName());
+        return generalService.prepareResponse(ResponseCodeAndMessage.SUCCESSFUL_0, data);
     }
 
     @PostMapping("/delete/{userId}")
@@ -52,20 +50,29 @@ public class UserController {
         return new ResponseEntity<>(null, HttpStatus.OK);
     }
 
-    @PostMapping("/follow")
-    public ResponseEntity<Response> follow(@Valid @RequestBody String followerUserName, Principal principal) {
-        Response data = userService.followAfriend(followerUserName, principal.getName());
-        if (data.getResponseCode().equals(ResponseCodeAndMessage.SUCCESSFUL_0.responseCode))
-            return new ResponseEntity<>(data, HttpStatus.OK);
-        else return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+    @PostMapping("/follow/{followerUserName}")
+    public ResponseEntity<String> follow(@PathVariable String followerUserName, Principal principal) {
+        userService.follow(followerUserName, principal.getName());
+        return new ResponseEntity<>("Successfully followed the user", HttpStatus.OK);
     }
 
-    @PostMapping("/unFollow")
-    public ResponseEntity<Response> unFollow(@Valid @RequestBody String followerUserName, Principal principal) {
-        Response data = userService.unFollow(followerUserName, principal.getName());
-        if (data.getResponseCode().equals(ResponseCodeAndMessage.SUCCESSFUL_0.responseCode))
-            return new ResponseEntity<>(data, HttpStatus.OK);
-        else return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+    @PostMapping("/unFollow/{followerUserName}")
+    public ResponseEntity<String> unFollow(@PathVariable String followerUserName, Principal principal) {
+        userService.unFollow(followerUserName, principal.getName());
+        return new ResponseEntity<>("Successfully UnFollowed the user", HttpStatus.OK);
+    }
+
+    @PostMapping()
+    public Response getAll(@Valid @RequestBody UserRequestDTO request) {
+        UserListDTO data = userService.getAllUsers(request);
+        return generalService.prepareResponse(ResponseCodeAndMessage.SUCCESSFUL_0, data);
+    }
+
+    //create api to get follwers list
+    @PostMapping("/getAllFollowers")
+    public Response getAllFollowersOfAUser(@Valid @RequestBody UserRequestDTO request) {
+        UserListDTO data = userService.getAllUsers(request);
+        return generalService.prepareResponse(ResponseCodeAndMessage.SUCCESSFUL_0, data);
     }
 
 }

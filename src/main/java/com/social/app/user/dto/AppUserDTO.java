@@ -1,10 +1,7 @@
 package com.social.app.user.dto;
 
-import com.social.app.user.model.ApplicationUser;
 import com.social.app.user.model.UserRole;
 import lombok.Data;
-
-import java.util.Set;
 
 @Data
 public class AppUserDTO {
@@ -15,8 +12,8 @@ public class AppUserDTO {
 
     private UserRole role;
 
-    private int numberOfFollowers;
+    private int followerCount;
 
-    private Set<ApplicationUser> followers;
+    private int followingCount;
 
 }

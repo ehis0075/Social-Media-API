@@ -3,6 +3,8 @@ package com.social.app.util;
 import com.social.app.exception.GeneralException;
 import com.social.app.general.enums.ResponseCodeAndMessage;
 
+import java.util.Date;
+
 public class GeneralUtil {
 
     public static void validateNameAndPhoneNumber(String firstName, String lastName, String phoneNumber) {
@@ -28,5 +30,8 @@ public class GeneralUtil {
             return ("".equals(arg)) || (arg.trim().length() == 0);
     }
 
+    public static String getDateAsString(Date transactionDate) {
+        return DateUtil.dateToString(transactionDate, "yyyy-MM-dd HH:mm:ss");
+    }
 
 }

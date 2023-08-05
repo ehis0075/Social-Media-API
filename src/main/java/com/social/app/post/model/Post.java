@@ -36,7 +36,7 @@ public class Post {
     @ManyToOne
     private ApplicationUser user;
 
-    @OneToMany
+    @ManyToMany
     private Set<ApplicationUser> usersWhoLiked;
 
     public static PostDTO getPostDTO(Post request){

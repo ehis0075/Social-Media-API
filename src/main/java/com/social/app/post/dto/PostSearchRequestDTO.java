@@ -15,4 +15,6 @@ public class PostSearchRequestDTO extends PageableRequestDTO {
     private ApplicationUser user;
 
     private Date transactionDate;
+
+    private String content;
 }

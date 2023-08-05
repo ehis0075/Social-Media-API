@@ -3,6 +3,7 @@ package com.social.app.user.model;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.Objects;
 import java.util.Set;
 
 @Getter
@@ -12,12 +13,15 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ApplicationUser {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true)
     private String username;
 
+    @Column(unique = true)
     private String email;
 
     private String password;
@@ -28,7 +32,26 @@ public class ApplicationUser {
 
     private int numberOfFollowers;
 
-    @OneToMany
-    private Set<ApplicationUser> followers;
+    private int numberOfFollowing;
 
+    @ManyToMany(fetch = FetchType.LAZY)
+    @ToString.Exclude
+    private Set<ApplicationUser> followers;  //people following this user
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @ToString.Exclude
+    private Set<ApplicationUser> following;  //people this user is following
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ApplicationUser)) return false;
+        ApplicationUser that = (ApplicationUser) o;
+        return Objects.equals(getId(), that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId());
+    }
 }

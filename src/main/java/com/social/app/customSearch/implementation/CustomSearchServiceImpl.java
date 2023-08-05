@@ -37,16 +37,13 @@ public class CustomSearchServiceImpl implements CustomSearchService {
         Root<Post> root = cq.from(Post.class);
         List<Predicate> predicates = new ArrayList<>();
 
-        if (valid(searchMultipleDto.getUser().getEmail())) {
-            predicates.add(cb.like(cb.lower(root.get("email")), '%' + searchMultipleDto.getUser().getEmail().toLowerCase(Locale.ROOT) + '%'));
-        }
 
-        if (Objects.nonNull(searchMultipleDto.getTransactionDate())) {
-            predicates.add(cb.equal(root.get("auditAction"), searchMultipleDto.getTransactionDate()));
+        if (valid(searchMultipleDto.getContent())) {
+            predicates.add(cb.like(cb.lower(root.get("content")), '%' + searchMultipleDto.getContent().toLowerCase(Locale.ROOT) + '%'));
         }
 
         cq.where(predicates.toArray(new Predicate[]{}));
-        cq.orderBy(cb.desc(root.get("date")));
+//        cq.orderBy(cb.desc(root.get("date")));
         TypedQuery<?> query = em.createQuery(cq);
 
 

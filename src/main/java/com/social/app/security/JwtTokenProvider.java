@@ -1,5 +1,7 @@
 package com.social.app.security;
 
+import com.social.app.exception.GeneralException;
+import com.social.app.general.enums.ResponseCodeAndMessage;
 import com.social.app.user.model.UserRole;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -64,12 +66,16 @@ public class JwtTokenProvider {
     }
 
     public boolean validateToken(String token) {
+        log.info("Request to validate token");
+
         try {
             Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
+
             log.info("Expired or invalid JWT token");
+            throw new GeneralException(ResponseCodeAndMessage.UNAUTHORIZED_97.responseCode, "Expired or invalid JWT token!");
         }
-        return false;
+
     }
 }

@@ -9,19 +9,23 @@ import com.social.app.post.dto.PostSearchRequestDTO;
 import com.social.app.post.model.Post;
 import com.social.app.user.model.ApplicationUser;
 
+import java.util.List;
+
 public interface PostService {
 
-    Response createPost(CreateAndUpdatePostDTO request, String username);
+    PostDTO createPost(CreateAndUpdatePostDTO request, String username);
 
-    Response updatePost(Long postId, CreateAndUpdatePostDTO request, String username);
+    PostDTO updatePost(Long postId, CreateAndUpdatePostDTO request, String username);
 
     void deletePost(Long postId, String username);
 
     Post getPost(Long postId);
 
-    Response getAllPost(PageableRequestDTO request, String username);
+    PostListDTO  getAllPost(PageableRequestDTO request);
 
-    Response likePost(Long postId, String username);
+    PostListDTO getAllPostForAUser(PageableRequestDTO request, String username);
+
+    PostDTO likePost(Long postId, String username);
 
     PostDTO getPostDTO(Post request, ApplicationUser user);
 

@@ -2,15 +2,13 @@ package com.social.app.comment.service.impl;
 
 import com.social.app.comment.dto.CommentDTO;
 import com.social.app.comment.dto.CommentListDTO;
-import com.social.app.comment.dto.CommentListRequestDTO;
 import com.social.app.comment.dto.CreateUpdateCommentDTO;
 import com.social.app.comment.model.Comment;
 import com.social.app.comment.repository.CommentRepository;
 import com.social.app.comment.service.CommentService;
 import com.social.app.exception.GeneralException;
-import com.social.app.general.dto.Response;
+import com.social.app.general.dto.PageableRequestDTO;
 import com.social.app.general.enums.ResponseCodeAndMessage;
-import com.social.app.general.service.GeneralService;
 import com.social.app.post.dto.PostDTO;
 import com.social.app.post.model.Post;
 import com.social.app.post.service.PostService;
@@ -22,6 +20,7 @@ import com.social.app.util.GeneralUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -36,21 +35,18 @@ public class CommentServiceImpl implements CommentService {
 
     private final UserService userService;
     private final PostService postService;
-    private final GeneralService generalService;
     private final CommentRepository commentRepository;
 
-    public CommentServiceImpl(UserService userService, PostService postService, GeneralService generalService, CommentRepository commentRepository) {
+    public CommentServiceImpl(UserService userService, PostService postService, CommentRepository commentRepository) {
         this.userService = userService;
         this.postService = postService;
-        this.generalService = generalService;
         this.commentRepository = commentRepository;
     }
 
 
     @Override
-    public Response createComment(CreateUpdateCommentDTO request, Long postId, String username) {
+    public CommentDTO createComment(CreateUpdateCommentDTO request, Long postId, String username) {
         log.info("Request to create a comment for post with ID {} by user {}", postId, username);
-
 
         // check that text is not null or empty
         if (GeneralUtil.stringIsNullOrEmpty(request.getText())) {
@@ -83,16 +79,11 @@ public class CommentServiceImpl implements CommentService {
         commentDTO.setPost(postDTO);
         commentDTO.setApplicationUser(appUserDTO);
 
-        Response response = new Response();
-        response.setResponseCode(ResponseCodeAndMessage.SUCCESSFUL_0.responseCode);
-        response.setResponseMessage(ResponseCodeAndMessage.SUCCESSFUL_0.responseMessage);
-        response.setData(commentDTO);
-
-        return response;
+        return commentDTO;
     }
 
     @Override
-    public Response updateComment(CreateUpdateCommentDTO request, Long commentId, String username) {
+    public CommentDTO updateComment(CreateUpdateCommentDTO request, Long commentId, String username) {
         log.info("Request to update a comment with ID {} by user {}", commentId, username);
 
         //get user
@@ -120,12 +111,7 @@ public class CommentServiceImpl implements CommentService {
         commentDTO.setPost(postDTO);
         commentDTO.setApplicationUser(appUserDTO);
 
-        Response response = new Response();
-        response.setResponseCode(ResponseCodeAndMessage.SUCCESSFUL_0.responseCode);
-        response.setResponseMessage(ResponseCodeAndMessage.SUCCESSFUL_0.responseMessage);
-        response.setData(commentDTO);
-
-        return response;
+        return commentDTO;
     }
 
     @Override
@@ -139,10 +125,10 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public CommentListDTO getCommentList(CommentListRequestDTO requestDTO) {
-        log.info("Getting Comment List ");
+    public CommentListDTO getCommentList(PageableRequestDTO requestDTO) {
+        log.info("Getting Comment List");
 
-        Pageable paged = generalService.getPageableObject(requestDTO.getSize(), requestDTO.getPage());
+        Pageable paged = PageRequest.of(requestDTO.getPage(), requestDTO.getSize());
         Page<Comment> commentsPage = commentRepository.findAll(paged);
 
         return getCommentListDTO(commentsPage);
@@ -194,10 +180,12 @@ public class CommentServiceImpl implements CommentService {
 
         AppUserDTO userDTO = getUserDTO(user);
 
+        String trnxDate = GeneralUtil.getDateAsString(request.getTransactionDate());
+
         PostDTO postDTO = new PostDTO();
         postDTO.setContent(request.getContent());
         postDTO.setUserDTO(userDTO);
-        postDTO.setTransactionDate(request.getTransactionDate());
+        postDTO.setTransactionDate(trnxDate);
         postDTO.setLikeCount(request.getNumberOfLikes());
         postDTO.setUsersWhoLiked(request.getUsersWhoLiked());
 
@@ -209,10 +197,9 @@ public class CommentServiceImpl implements CommentService {
         appUserDTO.setUsername(request.getUsername());
         appUserDTO.setEmail(request.getEmail());
         appUserDTO.setRole(UserRole.ROLE_USER);
-        appUserDTO.setNumberOfFollowers(request.getNumberOfFollowers());
+        appUserDTO.setFollowerCount(request.getNumberOfFollowers());
 
         return appUserDTO;
     }
-
 
 }

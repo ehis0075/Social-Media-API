@@ -3,7 +3,6 @@ package com.social.app.post.service.impl;
 import com.social.app.customSearch.CustomSearchService;
 import com.social.app.exception.GeneralException;
 import com.social.app.general.dto.PageableRequestDTO;
-import com.social.app.general.dto.Response;
 import com.social.app.general.enums.ResponseCodeAndMessage;
 import com.social.app.general.service.GeneralService;
 import com.social.app.post.dto.CreateAndUpdatePostDTO;
@@ -16,6 +15,7 @@ import com.social.app.post.service.PostService;
 import com.social.app.user.dto.AppUserDTO;
 import com.social.app.user.model.ApplicationUser;
 import com.social.app.user.service.UserService;
+import com.social.app.util.GeneralUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -41,7 +41,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public Response createPost(CreateAndUpdatePostDTO request, String username) {
+    public PostDTO createPost(CreateAndUpdatePostDTO request, String username) {
         log.info("Request to create post with payload = {}", request);
 
         //get user
@@ -56,18 +56,11 @@ public class PostServiceImpl implements PostService {
 
         savePost(post);
 
-        PostDTO postDTO = getPostDTO(post, user);
-
-        Response response = new Response();
-        response.setResponseCode(ResponseCodeAndMessage.SUCCESSFUL_0.responseCode);
-        response.setResponseMessage(ResponseCodeAndMessage.SUCCESSFUL_0.responseMessage);
-        response.setData(postDTO);
-
-        return response;
+        return getPostDTO(post, user);
     }
 
     @Override
-    public Response updatePost(Long postId, CreateAndUpdatePostDTO request, String username) {
+    public PostDTO updatePost(Long postId, CreateAndUpdatePostDTO request, String username) {
         log.info("Request to update post with id = {} by user {}", postId, username);
 
         //get user
@@ -82,25 +75,27 @@ public class PostServiceImpl implements PostService {
 
         savePost(post);
 
-        PostDTO postDTO = getPostDTO(post, user);
-
-        Response response = new Response();
-        response.setResponseCode(ResponseCodeAndMessage.SUCCESSFUL_0.responseCode);
-        response.setResponseMessage(ResponseCodeAndMessage.SUCCESSFUL_0.responseMessage);
-        response.setData(postDTO);
-
-        return response;
+        return getPostDTO(post, user);
     }
 
     @Override
     public void deletePost(Long postId, String username) {
         log.info("Request to delete post with id = {} by user {}", postId, username);
 
+        //get post from db
+        Post post = getPost(postId);
+
         //get user
         ApplicationUser user = userService.getUserByUsername(username);
 
-        Post post = getPost(postId);
+        ApplicationUser userThatPosted = post.getUser();
+
+        if (!user.getId().equals(userThatPosted.getId())) {
+            throw new GeneralException(ResponseCodeAndMessage.RECORD_NOT_FOUND_88.responseCode, "You can only delete a post you created");
+        }
+
         postRepository.delete(post);
+        log.info("successfully deleted post");
     }
 
     @Override
@@ -113,32 +108,58 @@ public class PostServiceImpl implements PostService {
         if (post.isEmpty()) {
             throw new GeneralException(ResponseCodeAndMessage.RECORD_NOT_FOUND_88.responseCode, "Post does not Exist");
         }
-
         return post.get();
     }
 
 
     @Override
-    public Response getAllPost(PageableRequestDTO request, String username) {
-        log.info("Request to get all Post for user = {}", username);
-
-        //get user
-        ApplicationUser user = userService.getUserByUsername(username);
-        AppUserDTO userDTO = userService.getUserDTO(user);
+    public PostListDTO getAllPost(PageableRequestDTO request) {
+        log.info("Request to get all Post");
 
         Pageable paged = generalService.getPageableObject(request.getSize(), request.getPage());
-        Page<Post> postPage = postRepository.findAll(paged);
+        Page<Post> applicationUsers = postRepository.findAll(paged);
+        log.info("Post list {}", applicationUsers);
 
-        Response response = new Response();
-        response.setResponseCode(ResponseCodeAndMessage.SUCCESSFUL_0.responseCode);
-        response.setResponseMessage(ResponseCodeAndMessage.SUCCESSFUL_0.responseMessage);
-        response.setData(postPage);
+        PostListDTO postListDTO = new PostListDTO();
 
-        return response;
+        List<Post> postList = applicationUsers.getContent();
+        if (applicationUsers.getContent().size() > 0) {
+            postListDTO.setHasNextRecord(applicationUsers.hasNext());
+            postListDTO.setTotalCount((int) applicationUsers.getTotalElements());
+        }
+
+        List<PostDTO> postDTOList = convertToPostDTOList(postList);
+        postListDTO.setPostList(postDTOList);
+
+        return postListDTO;
     }
 
     @Override
-    public Response likePost(Long postId, String username) {
+    public PostListDTO getAllPostForAUser(PageableRequestDTO request, String username) {
+        log.info("Request to get all Post for user = {}", username);
+
+        Pageable paged = generalService.getPageableObject(request.getSize(), request.getPage());
+
+        Page<Post> applicationUsers = postRepository.findAllByUser_Username(username, paged);
+        log.info("Post list {}", applicationUsers);
+
+        PostListDTO postListDTO = new PostListDTO();
+
+        List<Post> postList = applicationUsers.getContent();
+        if (applicationUsers.getContent().size() > 0) {
+            postListDTO.setHasNextRecord(applicationUsers.hasNext());
+            postListDTO.setTotalCount((int) applicationUsers.getTotalElements());
+        }
+
+        List<PostDTO> postDTOList = convertToPostDTOList(postList);
+        postListDTO.setPostList(postDTOList);
+
+        return postListDTO;
+
+    }
+
+    @Override
+    public PostDTO likePost(Long postId, String username) {
         log.info("Request to like a post with postId {} by user {}", postId, username);
 
         ApplicationUser user = userService.getUserByUsername(username);
@@ -146,28 +167,42 @@ public class PostServiceImpl implements PostService {
         //get post
         Post post = getPost(postId);
 
-        // Increment the number of likes on the post
-        post.setNumberOfLikes(post.getNumberOfLikes() + 1);
+        Set<ApplicationUser> userWhoLikedPosts = post.getUsersWhoLiked();
 
-        // add the user that liked the post to the usersWhoLiked List
-        Set<ApplicationUser> followerList = new HashSet<>();
-        followerList.add(user);
+        if (Objects.nonNull(userWhoLikedPosts) && !userWhoLikedPosts.isEmpty()) {
 
-        post.setUsersWhoLiked(followerList);
+            // check if user has liked the post before
+            if (!hasUserLikedPost(user, userWhoLikedPosts)) {
+                // Increment the number of likes on the post
+                post.setNumberOfLikes(post.getNumberOfLikes() + 1);
 
-        // save post
-        savePost(post);
+                // add the user that liked the post to the usersWhoLiked List
+                userWhoLikedPosts.add(user);
 
-        PostDTO postDTO = getPostDTO(post, user);
+                post.setUsersWhoLiked(userWhoLikedPosts);
 
-        Response response = new Response();
-        response.setResponseCode(ResponseCodeAndMessage.SUCCESSFUL_0.responseCode);
-        response.setResponseMessage(ResponseCodeAndMessage.SUCCESSFUL_0.responseMessage);
-        response.setData(postDTO);
+                // save post
+                post = savePost(post);
+            } else {
+                log.info("User Already liked this post");
+                throw new GeneralException(ResponseCodeAndMessage.INCOMPLETE_PARAMETERS_91.responseCode, "User Already liked this post!");
+            }
+        } else {
 
-        return response;
+            // Increment the number of likes on the post
+            post.setNumberOfLikes(1);
+
+            // add the user that liked the post to the usersWhoLiked List
+            userWhoLikedPosts.add(user);
+
+            post.setUsersWhoLiked(userWhoLikedPosts);
+
+            // save post
+            post = savePost(post);
+        }
+
+        return getPostDTO(post, user);
     }
-
 
     @Override
     public PostDTO getPostDTO(Post request, ApplicationUser user) {
@@ -175,10 +210,12 @@ public class PostServiceImpl implements PostService {
 
         AppUserDTO userDTO = userService.getUserDTO(user);
 
+        String trnxDate = GeneralUtil.getDateAsString(request.getTransactionDate());
+
         PostDTO postDTO = new PostDTO();
         postDTO.setContent(request.getContent());
         postDTO.setUserDTO(userDTO);
-        postDTO.setTransactionDate(request.getTransactionDate());
+        postDTO.setTransactionDate(trnxDate);
         postDTO.setLikeCount(request.getNumberOfLikes());
         postDTO.setUsersWhoLiked(request.getUsersWhoLiked());
 
@@ -193,9 +230,15 @@ public class PostServiceImpl implements PostService {
         return getPostListDTO(transactionPage);
     }
 
-    private void savePost(Post post) {
-        postRepository.save(post);
+    public boolean hasUserLikedPost(ApplicationUser user, Set<ApplicationUser> usersWhoLiked) {
+        return usersWhoLiked.contains(user);
+    }
+
+    private Post savePost(Post post) {
+        Post savedPost = postRepository.save(post);
         log.info("successfully saved post to db");
+
+        return savedPost;
     }
 
     private PostListDTO getPostListDTO(Page<Post> postPage) {
