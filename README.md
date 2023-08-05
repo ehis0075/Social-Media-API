@@ -24,7 +24,7 @@ The JWT is used for user authentication, clients must include the JWT token in t
 The header should look like: `Authorization: Bearer <JWT_TOKEN>`. The JWT token is obtained by authenticating the user via the `/api/v1/users/sign-in` endpoint.
 
 
-                                # API Endpoints
+                                # USER Endpoints
 ## User Registration API
 
 **Endpoint:** `/api/v1/users/sign-up`
@@ -53,8 +53,16 @@ This API also requires that a valid JWT token must be passed on the header.
 
 ## delete user API
 
+**Endpoint:** `/api/v1/users/delete/{username}`
+**Method:** `POST`
+**Authorization:** Bearer Token (JWT)
+
 
 ## get all users API
+
+**Endpoint:** `/api/v1/users`
+**Method:** `GET`
+**Authorization:** Bearer Token (JWT)
 
 
 ## Follow a friend API
@@ -63,9 +71,57 @@ This API also requires that a valid JWT token must be passed on the header.
 **Method:** `POST`
 **Authorization:** Bearer Token (JWT)
 
-Allows authenticated users to follow another registered user on the platform. Requires providing the `username` of the registered user in the request body. The request must be authenticated with a valid JWT token.
+Allows authenticated users to follow another registered user on the platform. Requires providing the `username` of the registered user at the path variable. The request must be authenticated with a valid JWT token.
 
 
 ## unFollow a friend API
+**Endpoint:** `/api/v1/users/unFollow/{username}`
+**Method:** `POST`
+**Authorization:** Bearer Token (JWT)
+
+Allows authenticated users to unFollow another registered user on the platform. Requires providing the `username` of the registered user at the path variable. The request must be authenticated with a valid JWT token.
 
 
+
+                         # Post Endpoints
+
+## like a post API
+
+**Endpoint:** `/api/v1/users/posts/likeAPost/{postId}`
+**Method:** `POST`
+**Authorization:** Bearer Token (JWT)
+
+Allows authenticated users to like a post on the platform. Requires providing the `postId` of the post at the path variable. The request must be authenticated with a valid JWT token.
+
+
+## get all post API
+
+**Endpoint:** `/api/v1/users/posts`
+**Method:** `GET`
+**Authorization:** Bearer Token (JWT)
+
+
+## get all posts on a comment API
+
+
+                         # Comments Endpoints
+
+## Comment on a post API
+
+**Endpoint:** `/api/v1/users/comments/create/{postId}`
+**Method:** `POST`
+**Authorization:** Bearer Token (JWT)
+
+Allows authenticated users to like a post on the platform. Requires providing the `postId` of the post at the path variable and also the `text` of the comment at the Request Body. The request must be authenticated with a valid JWT token.
+
+## Update Comment on a post API
+
+**Endpoint:** `/api/v1/users/comments/update/{postId}`
+**Method:** `POST`
+**Authorization:** Bearer Token (JWT)
+
+## Get all Comment API
+
+**Endpoint:** `/api/v1/users/comments`
+**Method:** `GET`
+**Authorization:** Bearer Token (JWT)

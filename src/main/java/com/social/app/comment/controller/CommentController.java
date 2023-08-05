@@ -52,4 +52,6 @@ public class CommentController {
         return generalService.prepareResponse(ResponseCodeAndMessage.SUCCESSFUL_0, data);
     }
 
+    //TODO get all comments on a post for a particular user
+
 }

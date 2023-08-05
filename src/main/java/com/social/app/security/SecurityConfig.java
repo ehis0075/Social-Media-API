@@ -39,7 +39,7 @@ public class SecurityConfig {
                 .sessionManagement().sessionCreationPolicy
                         (SessionCreationPolicy.STATELESS).and()
                 .authorizeRequests()
-                .antMatchers("/api/v1/**", "/api/v1/users/sign-up", "/api/v1/users/sign-in").permitAll()
+                .antMatchers( "/api/v1/users/sign-up", "/api/v1/users/sign-in").permitAll()
                 .anyRequest()
                 .authenticated();
 

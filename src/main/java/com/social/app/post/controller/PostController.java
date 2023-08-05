@@ -70,4 +70,7 @@ public class PostController {
         return generalService.prepareResponse(ResponseCodeAndMessage.SUCCESSFUL_0, data);
     }
 
+
+    //TODO get all post for a particular user
+
 }
