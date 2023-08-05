@@ -4,6 +4,7 @@ import com.social.app.exception.GeneralException;
 import com.social.app.general.dto.Response;
 import com.social.app.general.enums.ResponseCodeAndMessage;
 import com.social.app.general.service.GeneralService;
+import com.social.app.image.service.ImageService;
 import com.social.app.security.JwtTokenProvider;
 import com.social.app.user.dto.*;
 import com.social.app.user.model.ApplicationUser;
@@ -24,6 +25,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -33,6 +35,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserServiceImpl implements UserService {
 
+    private final ImageService imageService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
@@ -52,6 +55,10 @@ public class UserServiceImpl implements UserService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setUserRole(UserRole.ROLE_USER);
+
+        String fieldId = addProfileImage(request);
+
+        user.setImageUrl(fieldId);
 
         saveUser(user);
 
@@ -101,6 +108,9 @@ public class UserServiceImpl implements UserService {
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+
+        String fieldId = addProfileImage(request);
+        user.setImageUrl(fieldId);
 
         saveUser(user);
 
@@ -163,6 +173,56 @@ public class UserServiceImpl implements UserService {
 
         //for follower
         addToFollower(loggedInUser, userToFollowEntity);
+    }
+
+    @Override
+    public void unFollow(String userToUnFollowUsername, String loggedInUserUsername) {
+        log.info("Request to unFollow a friend with loggedInUserUsername {} by loggedInUserUsername {}", userToUnFollowUsername, loggedInUserUsername);
+
+        if (GeneralUtil.stringIsNullOrEmpty(userToUnFollowUsername)) {
+            throw new GeneralException(ResponseCodeAndMessage.INCOMPLETE_PARAMETERS_91.responseCode, "the username of the user cannot be null or empty!");
+        }
+
+        ApplicationUser loggedInUser = getUserByUsername(loggedInUserUsername);
+
+        //find the follower in the db
+        ApplicationUser userToUnFollowEntity = getUserByUsername(userToUnFollowUsername);
+
+        //follow the selected user
+        removeUserFromFollowingList(loggedInUser, userToUnFollowEntity);
+
+        //for follower
+        removeFollower(loggedInUser, userToUnFollowEntity);
+    }
+
+    @Override
+    public ApplicationUser saveUser(ApplicationUser user) {
+
+        user = userRepository.save(user);
+        log.info("successfully saved user to db");
+        return user;
+    }
+
+    @Override
+    public UserListDTO getAllUsers(UserRequestDTO request) {
+        log.info("Getting Users List");
+
+        Pageable paged = generalService.getPageableObject(request.getSize(), request.getPage());
+        Page<ApplicationUser> applicationUsers = userRepository.findAll(paged);
+        log.info("user list {}", applicationUsers);
+
+        UserListDTO userListDTO = new UserListDTO();
+
+        List<ApplicationUser> userList = applicationUsers.getContent();
+        if (applicationUsers.getContent().size() > 0) {
+            userListDTO.setHasNextRecord(applicationUsers.hasNext());
+            userListDTO.setTotalCount((int) applicationUsers.getTotalElements());
+        }
+
+        List<AppUserDTO> userDTOList = convertToUserDTOList(userList);
+        userListDTO.setUserDTOList(userDTOList);
+
+        return userListDTO;
     }
 
     private void addToFollower(ApplicationUser loggedInUser, ApplicationUser userToFollowEntity) {
@@ -269,55 +329,6 @@ public class UserServiceImpl implements UserService {
         saveUser(loggedInUser);
     }
 
-    @Override
-    public void unFollow(String userToUnFollowUsername, String loggedInUserUsername) {
-        log.info("Request to unFollow a friend with loggedInUserUsername {} by loggedInUserUsername {}", userToUnFollowUsername, loggedInUserUsername);
-
-        if (GeneralUtil.stringIsNullOrEmpty(userToUnFollowUsername)) {
-            throw new GeneralException(ResponseCodeAndMessage.INCOMPLETE_PARAMETERS_91.responseCode, "the username of the user cannot be null or empty!");
-        }
-
-        ApplicationUser loggedInUser = getUserByUsername(loggedInUserUsername);
-
-        //find the follower in the db
-        ApplicationUser userToUnFollowEntity = getUserByUsername(userToUnFollowUsername);
-
-        //follow the selected user
-        removeUserFromFollowingList(loggedInUser, userToUnFollowEntity);
-
-        //for follower
-        removeFollower(loggedInUser, userToUnFollowEntity);
-    }
-
-    @Override
-    public ApplicationUser saveUser(ApplicationUser user) {
-        user = userRepository.save(user);
-        log.info("successfully saved user to db");
-        return user;
-    }
-
-    @Override
-    public UserListDTO getAllUsers(UserRequestDTO request) {
-        log.info("Getting Users List");
-
-        Pageable paged = generalService.getPageableObject(request.getSize(), request.getPage());
-        Page<ApplicationUser> applicationUsers = userRepository.findAll(paged);
-        log.info("user list {}", applicationUsers);
-
-        UserListDTO userListDTO = new UserListDTO();
-
-        List<ApplicationUser> userList = applicationUsers.getContent();
-        if (applicationUsers.getContent().size() > 0) {
-            userListDTO.setHasNextRecord(applicationUsers.hasNext());
-            userListDTO.setTotalCount((int) applicationUsers.getTotalElements());
-        }
-
-        List<AppUserDTO> userDTOList = convertToUserDTOList(userList);
-        userListDTO.setUserDTOList(userDTOList);
-
-        return userListDTO;
-    }
-
     private void validateEmailAndUserName(SignUpRequest request) {
 
         boolean isExist = userRepository.existsByEmail(request.getEmail());
@@ -338,4 +349,25 @@ public class UserServiceImpl implements UserService {
 
         return adminUserList.stream().map(this::getUserDTO).collect(Collectors.toList());
     }
+
+    private String addProfileImage(SignUpRequest request) {
+        Map<String, String> fileIdAndImage = imageService.uploadImage(request.getImageUrl(), request.getUsername());
+        if (Objects.nonNull(fileIdAndImage)) {
+            log.info("uploading Profile image");
+
+            String fieldId = fileIdAndImage.get("fileId");
+            String url = fileIdAndImage.get("url");
+
+            request.setImageUrl(url);
+
+            return fieldId;
+        } else {
+            if (Objects.nonNull(request.getImageUrl()) && request.getImageUrl().length() > 200) {
+                request.setImageUrl(null);
+            }
+            return null;
+        }
+    }
+
+
 }
