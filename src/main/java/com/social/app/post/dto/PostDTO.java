@@ -9,6 +9,8 @@ import java.util.Set;
 @Data
 public class PostDTO {
 
+    private Long id;
+
     private String content;
 
     private AppUserDTO userDTO;

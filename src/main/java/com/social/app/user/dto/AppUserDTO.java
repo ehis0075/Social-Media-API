@@ -12,6 +12,8 @@ public class AppUserDTO {
 
     private UserRole role;
 
+    private String imageUrl;
+
     private int followerCount;
 
     private int followingCount;

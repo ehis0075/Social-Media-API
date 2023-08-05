@@ -68,7 +68,7 @@ public class UserController {
         return generalService.prepareResponse(ResponseCodeAndMessage.SUCCESSFUL_0, data);
     }
 
-    //create api to get follwers list
+    //create api to get followers of a particular user
     @PostMapping("/getAllFollowers")
     public Response getAllFollowersOfAUser(@Valid @RequestBody UserRequestDTO request) {
         UserListDTO data = userService.getAllUsers(request);

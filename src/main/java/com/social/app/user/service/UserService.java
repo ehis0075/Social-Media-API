@@ -28,4 +28,12 @@ public interface UserService {
     ApplicationUser saveUser(ApplicationUser user);
 
     UserListDTO getAllUsers(UserRequestDTO request);
+
+    void addToFollower(ApplicationUser loggedInUser, ApplicationUser userToFollowEntity);
+
+    void removeFollower(ApplicationUser loggedInUser, ApplicationUser userToUnFollowEntity);
+
+    void addUserToFollowingList(ApplicationUser loggedInUser, ApplicationUser userToFollow);
+
+    void removeUserFromFollowingList(ApplicationUser loggedInUser, ApplicationUser userToUnFollow);
 }

@@ -40,7 +40,6 @@ public class CommentController {
         return generalService.prepareResponse(ResponseCodeAndMessage.SUCCESSFUL_0, data);
     }
 
-
     @PostMapping("/delete/{commentId}")
     public ResponseEntity<String> deleteComments(@PathVariable Long commentId, Principal principal) {
         commentService.deleteComment(commentId, principal.getName());

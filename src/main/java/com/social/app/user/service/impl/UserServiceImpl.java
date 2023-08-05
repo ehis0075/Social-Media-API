@@ -225,21 +225,24 @@ public class UserServiceImpl implements UserService {
         return userListDTO;
     }
 
-    private void addToFollower(ApplicationUser loggedInUser, ApplicationUser userToFollowEntity) {
+    @Override
+    public void addToFollower(ApplicationUser loggedInUser, ApplicationUser userToFollowEntity) {
         Set<ApplicationUser> followers = userToFollowEntity.getFollowers();
 
         int numberOfFollowers = incrementCount(userToFollowEntity.getNumberOfFollowers());
         addAndIncrementNoOfFollowers(loggedInUser, userToFollowEntity, followers, numberOfFollowers);
     }
 
-    private void removeFollower(ApplicationUser loggedInUser, ApplicationUser userToUnFollowEntity) {
+    @Override
+    public void removeFollower(ApplicationUser loggedInUser, ApplicationUser userToUnFollowEntity) {
         Set<ApplicationUser> followers = userToUnFollowEntity.getFollowers();
 
         int numberOfFollowers = decrementCount(userToUnFollowEntity.getNumberOfFollowers());
         removeAndDecrementNoOfFollowers(loggedInUser, userToUnFollowEntity, followers, numberOfFollowers);
     }
 
-    private void addUserToFollowingList(ApplicationUser loggedInUser, ApplicationUser userToFollow) {
+    @Override
+    public void addUserToFollowingList(ApplicationUser loggedInUser, ApplicationUser userToFollow) {
         String userToFollowUsername = userToFollow.getUsername();
 
         Set<ApplicationUser> loggedInUserFollowing = loggedInUser.getFollowing();
@@ -263,7 +266,8 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private void removeUserFromFollowingList(ApplicationUser loggedInUser, ApplicationUser userToUnFollow) {
+    @Override
+    public void removeUserFromFollowingList(ApplicationUser loggedInUser, ApplicationUser userToUnFollow) {
         log.info("Request to remove user {} from the following list by user {}", userToUnFollow, loggedInUser);
         String userToUnFollowUsername = userToUnFollow.getUsername();
 
@@ -293,7 +297,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private int decrementCount(int count) {
-        return count == 0 ? 1 : count - 1;
+        return count == 0 ? 0 : count - 1;
     }
 
     private void addAndIncrementNoOfFollowers(ApplicationUser loggedInUser, ApplicationUser followingUser, Set<ApplicationUser> followers, int numberOfFollowers) {
