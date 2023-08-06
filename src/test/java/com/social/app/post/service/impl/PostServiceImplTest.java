@@ -36,7 +36,7 @@ class PostServiceImplTest {
     @Test
     public void testCreatePost_Success() {
         // Create sample input data
-        String username = "user";
+        String username = "ola";
         CreateAndUpdatePostDTO request = new CreateAndUpdatePostDTO();
         request.setContent("Test content");
 
@@ -72,7 +72,7 @@ class PostServiceImplTest {
     public void testUpdatePost_Success() {
         // Create sample input data
         Long postId = 1L;
-        String username = "user";
+        String username = "ola";
         CreateAndUpdatePostDTO request = new CreateAndUpdatePostDTO();
         request.setContent("Updated content");
 
@@ -111,8 +111,8 @@ class PostServiceImplTest {
     public void testDeletePost_UnauthorizedUser_ThrowsException() {
         // Create sample input data
         Long postId = 1L;
-        String username = "user";
-        String postUsername = "otherUser";
+        String username = "ola";
+        String postUsername = "dami";
 
         ApplicationUser user = new ApplicationUser();
         user.setUsername(username);

@@ -138,18 +138,18 @@ class UserServiceImplTest {
     public void testUpdateUser_Success() {
         // Create sample input data
         Long userId = 1L;
-        String username = "testUser";
+        String username = "ola";
         SignUpRequest request = new SignUpRequest();
-        request.setUsername("newUsername");
-        request.setEmail("newEmail@example.com");
-        request.setPassword("newPassword");
+        request.setUsername("ola125");
+        request.setEmail("ola123@example.com");
+        request.setPassword("ola123");
         request.setImageUrl("base64EncodedImage");
 
         ApplicationUser existingUser = new ApplicationUser();
         existingUser.setId(userId);
         existingUser.setUsername(username);
-        existingUser.setEmail("oldEmail@example.com");
-        existingUser.setPassword("oldPassword");
+        existingUser.setEmail("ola@example.com");
+        existingUser.setPassword("ola123");
         existingUser.setNumberOfFollowers(10);
 
         // Mock the behavior of userRepository.findByUsername()

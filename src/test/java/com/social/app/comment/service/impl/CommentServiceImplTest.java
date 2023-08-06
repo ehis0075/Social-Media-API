@@ -130,7 +130,7 @@ class CommentServiceImplTest {
     public void testDeleteComment_Success() {
         // Create sample input data
         Long commentId = 1L;
-        String username = "user";
+        String username = "ola";
 
         Comment comment = new Comment();
         comment.setId(commentId);
