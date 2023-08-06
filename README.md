@@ -1,5 +1,5 @@
 # Spring Boot Airtime Purchase API with JWT Authentication
-This is a Spring Boot application that serves as an API for a Social Media Platform. The API uses JWT (JSON Web Tokens) for user authentication to secure the endpoints.
+This is a Spring Boot application Backend API Service for a Social Media Platform. This Backend API Service uses JWT (JSON Web Tokens) for user authentication.
 
 # Requirements
 -Java 11 or higher
@@ -12,11 +12,32 @@ git clone https://github.com/ehis0075/Social-Media-API
 cd social
 
 # Build the project using Maven
-mvn clean install
+mvn clean package
 
-# Run the Application
+# Run the Application Locally
+java -jar target/social-service-1.0.0.jar
 
-The application will start on `http://localhost:8080`.
+The API service will be accessible at `http://localhost:8082/api/v1`
+
+# Dockerize the Application
+You can build a Docker image for the application using the provided Dockerfile
+docker build -t social-service-docker:latest .
+
+# Running the Application with Docker
+Run the Docker container using the following command:
+
+docker run -p 8082:8082 social-service-docker:latest
+
+The API service will be available at http://localhost:8082/api/v1
+
+# Continuous Integration/Continuous Deployment (CI/CD)
+I have provided a jenkins file to automate the build, deployment and running of a Docker container for a service called "social-service-docker.
+The pipeline has three stages: "build," "remove-old," and "run.
+
+- The Build Stage is responsible for building a Docker image for the "social-service" using the docker build command.
+- The Remove Stage removes any previously running containers named "social-service" using the docker rm -f command.
+- In the Run Stage, the newly built Docker image is run as a container.
+
 
 # JWT Authentication
 
