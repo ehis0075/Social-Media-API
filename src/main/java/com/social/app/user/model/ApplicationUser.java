@@ -36,6 +36,8 @@ public class ApplicationUser {
 
     private String imageUrl;
 
+    private String fileId;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @ToString.Exclude
     private Set<ApplicationUser> followers;  //people following this user

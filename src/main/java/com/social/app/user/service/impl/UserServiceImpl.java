@@ -56,11 +56,15 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setUserRole(UserRole.ROLE_USER);
 
-        String fieldId = addProfileImage(request);
+        // upload doc
+        Map<String, String> map = imageService.upload(request.getBase64(), request.getUsername());
+        String fileId = map.get("fileId");
+        String url = map.get("url");
 
-        user.setImageUrl(fieldId);
+        user.setImageUrl(url);
+        user.setFileId(fileId);
 
-        saveUser(user);
+         user = saveUser(user);
 
         return getUserDTO(user);
     }
@@ -134,6 +138,8 @@ public class UserServiceImpl implements UserService {
         appUserDTO.setEmail(request.getEmail());
         appUserDTO.setRole(UserRole.ROLE_USER);
         appUserDTO.setFollowerCount(request.getNumberOfFollowers());
+        appUserDTO.setFileId(request.getFileId());
+        appUserDTO.setImageUrl(request.getImageUrl());
 
         return appUserDTO;
     }
@@ -355,7 +361,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private String addProfileImage(SignUpRequest request) {
-        Map<String, String> fileIdAndImage = imageService.uploadImage(request.getImageUrl(), request.getUsername());
+        Map<String, String> fileIdAndImage = imageService.uploadImage(request.getBase64(), request.getUsername());
         if (Objects.nonNull(fileIdAndImage)) {
             log.info("uploading Profile image");
 

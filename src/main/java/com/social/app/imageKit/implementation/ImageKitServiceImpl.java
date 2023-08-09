@@ -20,11 +20,11 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ImageKitServiceImpl implements ImageKitService {
 
-//    @Value("${imageKit.urlEndPoint}")
-//    private String defaultUrl;
+    @Value("${imageKit.urlEndPoint}")
+    private String defaultUrl;
 
-    @Value("${image.tempPath}")
-    private String SOCIAL;
+    @Value("${imagekit.merchantPath}")
+    private String TEMP;
 
     private final ImageKit imageKit;
 
@@ -36,7 +36,7 @@ public class ImageKitServiceImpl implements ImageKitService {
         try {
             FileCreateRequest fileCreateRequest = new FileCreateRequest(base64, fileName);
             fileCreateRequest.setUseUniqueFileName(false);
-            fileCreateRequest.setFolder(SOCIAL);
+            fileCreateRequest.setFolder(TEMP);
             Result result = imageKit.upload(fileCreateRequest);
 
             String fileId = result.getFileId();
@@ -55,6 +55,27 @@ public class ImageKitServiceImpl implements ImageKitService {
             return null;
         }
 
+    }
+
+    @Override
+    public boolean moveFileFromTemp(String url) {
+        String fileName = url.replace(defaultUrl, "");
+
+        log.info("Moving file => {} to {}", fileName, TEMP);
+        try {
+            MoveFileRequest moveFileRequest = new MoveFileRequest();
+            moveFileRequest.setSourceFilePath(fileName);
+            moveFileRequest.setDestinationPath(TEMP);
+            ResultNoContent resultNoContent = imageKit.moveFile(moveFileRequest);
+            log.info("Response {}", resultNoContent);
+
+            return true;
+        } catch (Exception ex) {
+            log.error("Failed to move image file {} to location => {}", fileName, TEMP);
+            log.error(ex.getMessage());
+        }
+
+        return false;
     }
 
     @Override

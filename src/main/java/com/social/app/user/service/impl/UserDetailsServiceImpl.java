@@ -26,8 +26,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         ApplicationUser user = userRepository.findByUsername(username);
 
         if (Objects.isNull(user)) {
-//            throw new UsernameNotFoundException("User '" + username + "' not found");
-            throw new GeneralException(ResponseCodeAndMessage.RECORD_NOT_FOUND_88.responseCode, "User '" + username + "' not found");
+            throw new UsernameNotFoundException("User '" + username + "' not found");
+//            throw new GeneralException(ResponseCodeAndMessage.RECORD_NOT_FOUND_88.responseCode, "User '" + username + "' not found");
         }
 
         return org.springframework.security.core.userdetails.User

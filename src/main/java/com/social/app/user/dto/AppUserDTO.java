@@ -18,4 +18,6 @@ public class AppUserDTO {
 
     private int followingCount;
 
+    private String fileId;
+
 }

@@ -24,5 +24,7 @@ public class SignUpRequest {
     @NotBlank(message = "password is required")
     private String password;
 
-    private String imageUrl; // base 64
+    private String base64; // base 64
+
+    private String imageUrl;
 }

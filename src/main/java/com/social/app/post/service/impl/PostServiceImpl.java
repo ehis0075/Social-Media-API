@@ -105,7 +105,7 @@ public class PostServiceImpl implements PostService {
         //get user
         Optional<Post> post = postRepository.findById(postId);
 
-        if (post.isEmpty()) {
+        if (!post.isPresent()) {
             throw new GeneralException(ResponseCodeAndMessage.RECORD_NOT_FOUND_88.responseCode, "Post does not Exist");
         }
         return post.get();
