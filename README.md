@@ -1,4 +1,4 @@
-# Spring Boot Airtime Purchase API with JWT Authentication
+# Social Media Application
 This is a Spring Boot application Backend API Service for a Social Media Platform. This Backend API Service uses JWT (JSON Web Tokens) for user authentication.
 
 # Requirements
